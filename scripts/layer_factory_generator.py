@@ -1,8 +1,8 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2015-2019 Valve Corporation
-# Copyright (c) 2015-2019 LunarG, Inc.
-# Copyright (c) 2015-2019 Google Inc.
+# Copyright (c) 2015-2020 Valve Corporation
+# Copyright (c) 2015-2020 LunarG, Inc.
+# Copyright (c) 2015-2020 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -65,6 +65,7 @@ class LayerFactoryGeneratorOptions(GeneratorOptions):
                  conventions = None,
                  filename = None,
                  directory = '.',
+                 genpath = None,
                  apiname = None,
                  profile = None,
                  versions = '.*',
@@ -86,9 +87,20 @@ class LayerFactoryGeneratorOptions(GeneratorOptions):
                  alignFuncParam = 0,
                  helper_file_type = '',
                  expandEnumerants = True):
-        GeneratorOptions.__init__(self, conventions, filename, directory, apiname, profile,
-                                  versions, emitversions, defaultExtensions,
-                                  addExtensions, removeExtensions, emitExtensions, sortProcedure)
+        GeneratorOptions.__init__(self,
+                 conventions = conventions,
+                 filename = filename,
+                 directory = directory,
+                 genpath = genpath,
+                 apiname = apiname,
+                 profile = profile,
+                 versions = versions,
+                 emitversions = emitversions,
+                 defaultExtensions = defaultExtensions,
+                 addExtensions = addExtensions,
+                 removeExtensions = removeExtensions,
+                 emitExtensions = emitExtensions,
+                 sortProcedure = sortProcedure)
         self.prefixText      = prefixText
         self.genFuncPointers = genFuncPointers
         self.protectFile     = protectFile
@@ -131,10 +143,10 @@ class LayerFactoryOutputGenerator(OutputGenerator):
 // This file is ***GENERATED***.  Do Not Edit.
 // See layer_factory_generator.py for modifications.
 
-/* Copyright (c) 2015-2019 The Khronos Group Inc.
- * Copyright (c) 2015-2019 Valve Corporation
- * Copyright (c) 2015-2019 LunarG, Inc.
- * Copyright (c) 2015-2019 Google Inc.
+/* Copyright (c) 2015-2020 The Khronos Group Inc.
+ * Copyright (c) 2015-2020 Valve Corporation
+ * Copyright (c) 2015-2020 LunarG, Inc.
+ * Copyright (c) 2015-2020 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -497,7 +509,7 @@ VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vkNegotiateLoaderLayerInterfaceVe
     def paramIsPointer(self, param):
         ispointer = False
         for elem in param:
-            if ((elem.tag is not 'type') and (elem.tail is not None)) and '*' in elem.tail:
+            if elem.tag == 'type' and elem.tail is not None and '*' in elem.tail:
                 ispointer = True
         return ispointer
 
@@ -549,24 +561,50 @@ VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vkNegotiateLoaderLayerInterfaceVe
         self.layer_factory += '\n'
         self.layer_factory += '        std::string layer_name = "VLF";\n'
         self.layer_factory += '\n'
+        self.layer_factory += '        bool log_msg(const debug_report_data *debug_data, VkFlags msg_flags, VkObjectType object_type,\n'
+        self.layer_factory += '                                   uint64_t src_object, const std::string &vuid_text, const char *format, ...) {\n'
+        self.layer_factory += '            if (!debug_data) return false;\n'
+        self.layer_factory += '            VkFlags local_severity = 0;\n'
+        self.layer_factory += '            VkFlags local_type = 0;\n'
+        self.layer_factory += '            DebugReportFlagsToAnnotFlags(msg_flags, true, &local_severity, &local_type);\n'
+        self.layer_factory += '            if (!debug_data || !(debug_data->active_severities & local_severity) || !(debug_data->active_types & local_type)) {\n'
+        self.layer_factory += '                // Message is not wanted\n'
+        self.layer_factory += '                return false;\n'
+        self.layer_factory += '            }\n'
+        self.layer_factory += '        \n'
+        self.layer_factory += '            va_list argptr;\n'
+        self.layer_factory += '            va_start(argptr, format);\n'
+        self.layer_factory += '            char *str;\n'
+        self.layer_factory += '            if (-1 == vasprintf(&str, format, argptr)) {\n'
+        self.layer_factory += '                // On failure, glibc vasprintf leaves str undefined\n'
+        self.layer_factory += '                str = nullptr;\n'
+        self.layer_factory += '            }\n'
+        self.layer_factory += '            va_end(argptr);\n'
+        self.layer_factory += '        \n'
+        self.layer_factory += '            VulkanTypedHandle null_handle{};\n'
+        self.layer_factory += '            LogObjectList objlist(null_handle);\n'
+        self.layer_factory += '            va_end(argptr);\n'
+        self.layer_factory += '            return LogMsgLocked(debug_data, msg_flags, objlist, vuid_text, str);\n'
+        self.layer_factory += '        }\n'
+        self.layer_factory += '\n'
         self.layer_factory += '        // Pre/post hook point declarations\n'
         self.layer_factory += '        bool Information(const std::string &message) {\n'
-        self.layer_factory += '            return log_msg(vlf_report_data, VK_DEBUG_REPORT_INFORMATION_BIT_EXT, VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT, 0,\n'
+        self.layer_factory += '            return log_msg(vlf_report_data, kInformationBit, VK_OBJECT_TYPE_UNKNOWN, 0,\n'
         self.layer_factory += '                           layer_name.c_str(), "%s", message.c_str());\n'
         self.layer_factory += '        }\n'
         self.layer_factory += '\n'
         self.layer_factory += '        bool PerformanceWarning(const std::string &message) {\n'
-        self.layer_factory += '            return log_msg(vlf_report_data, VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT, VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT,\n'
+        self.layer_factory += '            return log_msg(vlf_report_data, kPerformanceWarningBit, VK_OBJECT_TYPE_UNKNOWN,\n'
         self.layer_factory += '                           0, layer_name.c_str(), "%s", message.c_str());\n'
         self.layer_factory += '        }\n'
         self.layer_factory += '\n'
         self.layer_factory += '        bool Warning(const std::string &message) {\n'
-        self.layer_factory += '            return log_msg(vlf_report_data, VK_DEBUG_REPORT_WARNING_BIT_EXT, VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT, 0,\n'
+        self.layer_factory += '            return log_msg(vlf_report_data, kWarningBit, VK_OBJECT_TYPE_UNKNOWN, 0,\n'
         self.layer_factory += '                           layer_name.c_str(), "%s", message.c_str());\n'
         self.layer_factory += '        }\n'
         self.layer_factory += '\n'
         self.layer_factory += '        bool Error(const std::string &message) {\n'
-        self.layer_factory += '            return log_msg(vlf_report_data, VK_DEBUG_REPORT_ERROR_BIT_EXT, VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT, 0,\n'
+        self.layer_factory += '            return log_msg(vlf_report_data, kDebugBit, VK_OBJECT_TYPE_UNKNOWN, 0,\n'
         self.layer_factory += '                           layer_name.c_str(), "%s", message.c_str());\n'
         self.layer_factory += '        }\n'
         self.layer_factory += '\n'

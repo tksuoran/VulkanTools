@@ -1026,6 +1026,7 @@ ViaSystem::ViaResults ViaSystemMacOS::PrintExplicitLayersInFolder(const std::str
 ViaSystem::ViaResults ViaSystemMacOS::PrintSystemSdkInfo() {
     ViaResults result = VIA_SUCCESSFUL;
     bool sdk_exists = false;
+    bool is_system_installed_sdk = false;
     std::string sdk_path;
     std::string sdk_env_name;
     const char vulkan_so_prefix[] = "libvulkan.dylib.";
@@ -1040,6 +1041,9 @@ ViaSystem::ViaResults ViaSystemMacOS::PrintSystemSdkInfo() {
     env_value = getenv(sdk_env_name.c_str());
     if (env_value != NULL) {
         sdk_path = env_value;
+    } else {
+        sdk_path = "/usr/local";
+        is_system_installed_sdk = true;
     }
     PrintBeginTableRow();
     PrintTableElement(sdk_env_name);
@@ -1048,7 +1052,8 @@ ViaSystem::ViaResults ViaSystemMacOS::PrintSystemSdkInfo() {
     PrintTableElement("");
     PrintEndTableRow();
 
-    const std::vector<const char *> explicit_layer_path_suffixes{"/etc/explicit_layer.d", "/etc/vulkan/explicit_layer.d"};
+    const std::vector<const char *> explicit_layer_path_suffixes{"/etc/explicit_layer.d", "/etc/vulkan/explicit_layer.d",
+                                                                 "/share/explicit_layer.d", "/share/vulkan/explicit_layer.d"};
 
     for (auto &explicit_layer_path_suffix : explicit_layer_path_suffixes) {
         std::string explicit_layer_path = sdk_path + explicit_layer_path_suffix;
@@ -1063,6 +1068,7 @@ ViaSystem::ViaResults ViaSystemMacOS::PrintSystemSdkInfo() {
 
             result = PrintExplicitLayersInFolder("", explicit_layer_path);
 
+            _is_system_installed_sdk = is_system_installed_sdk;
             _found_sdk = true;
             _sdk_path = sdk_path;
             sdk_exists = true;

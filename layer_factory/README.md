@@ -1,10 +1,7 @@
 <!-- markdownlint-disable MD041 -->
-[![LunarG][1]][2]
+<p align="left"><img src="https://vulkan.lunarg.com/img/NewLunarGLogoBlack.png" alt="LunarG" width=263 height=113 /></p>
 
-[1]: https://vulkan.lunarg.com/img/LunarGLogo.png "www.LunarG.com"
-[2]: https://www.LunarG.com/
-
-Copyright &copy; 2015-2019 LunarG, Inc.
+Copyright &copy; 2015-2020 LunarG, Inc.
 
 [![Creative Commons][3]][4]
 
@@ -74,7 +71,7 @@ Step 4: Run CMake and build.
 
 3. Specify which layers to activate using environment variables.
 
-    `export VK\_INSTANCE\_LAYERS=VK\_LAYER\_LUNARG\_standard\_validation:VK\_LAYER\_LUNARG\_starter\_layer`
+    `export VK\_INSTANCE\_LAYERS=VK\_LAYER\_KHRONOS\_validation:VK\_LAYER\_LUNARG\_starter\_layer`
 
 
 ### Layer Factory Features
