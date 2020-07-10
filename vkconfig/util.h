@@ -22,8 +22,30 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdio>
 
 template <typename T, std::size_t N>
 inline constexpr std::size_t countof(T const (&)[N]) noexcept {
     return N;
 }
+
+struct Version
+{
+    Version(const char* version)
+    {
+        sscanf(version, "%d.%d.%d", &major, &minor, &patch);
+    }
+
+    bool operator<(const Version &other_version)
+    {
+        if(major < other_version.major)
+            return true;
+        if(minor < other_version.minor)
+            return true;
+        if(patch < other_version.patch)
+            return true;
+        return false;
+    }
+
+    int major, minor, patch;
+};
