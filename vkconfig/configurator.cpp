@@ -177,6 +177,21 @@ Configurator::Configurator()
       override_application_list_updated(false) {
     available_Layers.reserve(10);
 
+    {
+        QSettings settings;
+        const char* saved_version = settings.value(VKCONFIG_KEY_VKCONFIG_VERSION).toString().toUtf8().constData();
+        const char* current_version =
+            QString().asprintf("%d.%d.%d", VK_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE),
+                               VK_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE), VK_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE)).toUtf8().constData();
+
+        if (Version(saved_version) != Version(current_version)) {
+            settings.setValue(VKCONFIG_KEY_VKCONFIG_VERSION, current_version);
+            settings.setValue(VKCONFIG_KEY_FIRST_RUN, true);
+            settings.setValue(VKCONFIG_KEY_ACTIVEPROFILE, "Validation - Standard");
+            settings.setValue(VKCONFIG_KEY_RESTORE_GEOMETRY, false);
+        }
+    }
+
 #if defined(_WIN32) && QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     running_as_administrator_ = IsUserAnAdmin();
 #else

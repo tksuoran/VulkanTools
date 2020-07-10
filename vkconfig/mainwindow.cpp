@@ -128,11 +128,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui_(new Ui::MainW
         ui_->groupBoxEditor->setEnabled(false);
     }
 
-    restoreGeometry(settings_.value("geometry").toByteArray());
-    restoreState(settings_.value("windowState").toByteArray());
-    ui_->splitter->restoreState(settings_.value("splitter1State").toByteArray());
-    ui_->splitter_2->restoreState(settings_.value("splitter2State").toByteArray());
-    ui_->splitter_3->restoreState(settings_.value("splitter3State").toByteArray());
+    QSettings settings;
+    if (settings.value(VKCONFIG_KEY_RESTORE_GEOMETRY).toBool()){
+        restoreGeometry(settings_.value("geometry").toByteArray());
+        restoreState(settings_.value("windowState").toByteArray());
+        ui_->splitter->restoreState(settings_.value("splitter1State").toByteArray());
+        ui_->splitter_2->restoreState(settings_.value("splitter2State").toByteArray());
+        ui_->splitter_3->restoreState(settings_.value("splitter3State").toByteArray());
+    }
+    settings.setValue(VKCONFIG_KEY_RESTORE_GEOMETRY, true);
 
     // All else is done, highlight and activeate the current profile on startup
     Configuration *configuration = configurator.GetActiveConfiguration();
