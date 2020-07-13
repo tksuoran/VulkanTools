@@ -163,6 +163,11 @@ class Configurator {
    private:
     QString active_launch_executable_path_;  // This is to match up with the application list
 
+    QStringList VK_LAYER_PATH;  // If this environment variable is set, this contains
+                                // a list of paths that should be searched first for
+                                // Vulkan layers. (Named as environment variable for
+                                // clarity as to where this comes from).
+
     /////////////////////////////////////////////////////////////////////////
     // Additional places to look for layers
    public:
@@ -203,7 +208,7 @@ class Configurator {
     QVector<LayerFile*> available_Layers;  // All the found layers, lumped together
     void LoadAllInstalledLayers();
     const LayerFile* FindLayerNamed(QString layer_name, const char* location = nullptr);
-    void LoadLayersFromPath(const QString& path, QVector<LayerFile*>& layer_list, LayerType type);
+    void LoadLayersFromPath(const QString& path, QVector<LayerFile*>& layer_list);
 
     QVector<Configuration*> available_configurations;
 
