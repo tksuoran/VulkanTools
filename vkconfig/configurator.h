@@ -120,6 +120,7 @@ class Configurator {
     enum { PathCount = LastPath - FirstPath + 1 };
 
     static Configurator& Get();
+    bool InitializeConfigurator(void);
 
     // Need this to check vulkan loader version
     uint32_t vulkan_instance_version;

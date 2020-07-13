@@ -242,14 +242,19 @@ Configurator::Configurator()
         VK_LAYER_PATH = layer_path.split(":");  // Linux/macOS uses : as seperator
 #endif
     }
+}
 
+///////////////////////////////////////////////////////////////////////////////////
+/// A good rule of C++ is to not put things in the constructor that can fail, or
+/// that might require recursion. This initializes
+///
+bool Configurator::InitializeConfigurator(void) {
     // Load simple app settings, the additional search paths, and the
     // override app list.
     LoadSettings();
     LoadCustomLayersPaths();
     LoadOverriddenApplicationList();
     LoadDefaultLayerSettings();  // findAllInstalledLayers uses the results of this.
-
     LoadAllInstalledLayers();
 
     // If no layers are found, give the user another chance to add some custom paths
@@ -272,12 +277,12 @@ Configurator::Configurator()
 
     if (available_Layers.empty()) {
         QMessageBox alert;
-        alert.setText(VKCONFIG_NAME);
-        alert.setWindowTitle("Could not initialize Vulkan Configurator.");
+        alert.setText("Could not initialize Vulkan Configurator.");
+        alert.setWindowTitle(VKCONFIG_NAME);
         alert.setIcon(QMessageBox::Critical);
         alert.exec();
 
-        return;
+        return false;
     }
 
     LoadAllConfigurations();
@@ -285,6 +290,8 @@ Configurator::Configurator()
     // This will reset or clear the current profile if the files have been
     // manually manipulated
     SetActiveConfiguration(active_configuration_);
+
+    return true;
 }
 
 Configurator::~Configurator() {
