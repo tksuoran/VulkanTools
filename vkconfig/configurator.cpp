@@ -888,21 +888,20 @@ void Configurator::LoadAllInstalledLayers() {
 
     // FIRST: If VK_LAYER_PATH is set it has precedence over other layers.
     int lp = VK_LAYER_PATH.count();
-    if (lp != 0) {
+    if (lp != 0)
         for (int i = 0; i < lp; i++) LoadLayersFromPath(VK_LAYER_PATH[i], available_Layers);
 
-        // SECOND: Standard layer paths, in standard locations
-        for (std::size_t i = 0, n = countof(szSearchPaths); i < n; i++) LoadLayersFromPath(szSearchPaths[i], available_Layers);
+    // SECOND: Standard layer paths, in standard locations
+    for (std::size_t i = 0, n = countof(szSearchPaths); i < n; i++) LoadLayersFromPath(szSearchPaths[i], available_Layers);
 
-        // THIRD: Any custom paths? Search for those too
-        for (int i = 0; i < custom_layers_paths_.size(); i++) LoadLayersFromPath(custom_layers_paths_[i], available_Layers);
+    // THIRD: Any custom paths? Search for those too
+    for (int i = 0; i < custom_layers_paths_.size(); i++) LoadLayersFromPath(custom_layers_paths_[i], available_Layers);
 
-        // FOURTH: Finally, see if thee is anyting in the VULKAN_SDK path that wasn't already found elsewhere
-        QString vulkanSDK = qgetenv("VULKAN_SDK");
-        if (!vulkanSDK.isEmpty()) {
-            vulkanSDK += "/etc/vulkan/explicit_layer.d";
-            LoadLayersFromPath(vulkanSDK, available_Layers);
-        }
+    // FOURTH: Finally, see if thee is anyting in the VULKAN_SDK path that wasn't already found elsewhere
+    QString vulkanSDK = qgetenv("VULKAN_SDK");
+    if (!vulkanSDK.isEmpty()) {
+        vulkanSDK += "/etc/vulkan/explicit_layer.d";
+        LoadLayersFromPath(vulkanSDK, available_Layers);
     }
 }
 
